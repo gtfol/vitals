@@ -130,7 +130,11 @@ final class PersistenceTests: XCTestCase {
         XCTAssertEqual(heavy.loadKilograms, 100, "the first set starts from last time's load")
         try store.update(heavy, reps: 3, loadKilograms: 110)
         try store.setCompleted(heavy, true, restTarget: 90)
-        XCTAssertEqual(try store.summary(for: second, endingAt: .now).records.first?.hits.map(\.kind), [.heaviestLoad])
+        // 110 × 3 beats both the 100 kg load and the 100 × 5 estimate (116.7 kg): 110 × (1 + 3/30) = 121 kg.
+        let hits = try XCTUnwrap(try store.summary(for: second, endingAt: .now).records.first?.hits)
+        XCTAssertEqual(hits.map(\.kind), [.heaviestLoad, .estimatedOneRepMax])
+        XCTAssertEqual(hits.last?.value ?? 0, 121, accuracy: 0.001)
+        XCTAssertEqual(hits.last?.previous ?? 0, 100 * (1 + 5.0 / 30), accuracy: 0.001)
         try store.finish(second, at: Date(timeIntervalSince1970: 11_000))
         XCTAssertEqual(try store.history(for: bench.id).rows.first?.hits.first?.value, 110)
 
