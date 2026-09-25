@@ -5,6 +5,11 @@ on:
   pull_request:
     paths-ignore: ["**.md", "docs/**"]
   workflow_dispatch:
+    inputs:
+      screenshot_previews:
+        description: Also print small JPEG previews of the UI test screenshots in the job log, base64-encoded
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
@@ -42,6 +47,17 @@ jobs:
           if [ -d TestResults.xcresult ]; then
             xcrun xcresulttool export attachments --path TestResults.xcresult --output-path Screenshots || true
           fi
+      - name: Screenshot previews in the log
+        if: always() && github.event_name == 'workflow_dispatch' && inputs.screenshot_previews
+        run: |
+          shopt -s nullglob
+          [ -f Screenshots/manifest.json ] && cat Screenshots/manifest.json
+          for file in Screenshots/*.png Screenshots/*.jpeg Screenshots/*.jpg; do
+            sips -s format jpeg -s formatOptions 55 -Z 900 "$file" --out "$RUNNER_TEMP/preview.jpg" >/dev/null
+            echo "=====BEGIN $(basename "$file")====="
+            base64 -i "$RUNNER_TEMP/preview.jpg" | fold -w 1000
+            echo "=====END====="
+          done
       - name: Screenshots
         if: always()
         uses: actions/upload-artifact@v7
