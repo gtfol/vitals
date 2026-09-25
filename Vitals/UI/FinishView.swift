@@ -100,7 +100,7 @@ struct SummaryDetails: View {
                     row("working sets done", "\(summary.completedWorkingSets)")
                     if summary.completedWarmupSets > 0 { row("warm-up sets", "\(summary.completedWarmupSets)") }
                     row("volume", LoadText.volume(summary.volumeKilograms, unit: unit))
-                    Text("volume is reps × added load on completed working sets. bodyweight and warm-ups aren’t included.")
+                    Text("volume is reps × the load you entered, over completed working sets. warm-ups and body weight aren’t counted.")
                         .font(VitalsStyle.caption).foregroundStyle(VitalsStyle.secondary)
                 }
                 if !summary.records.isEmpty {

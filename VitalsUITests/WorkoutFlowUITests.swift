@@ -19,6 +19,8 @@ final class WorkoutFlowUITests: XCTestCase {
         enter("5", into: app.textFields["bench press-1-reps"], in: app)
         app.buttons["bench press-1-done"].tap()
         XCTAssertTrue(app.buttons["rest-skip"].waitForExistence(timeout: 5), "completing a set starts rest")
+        XCTAssertLessThanOrEqual(app.buttons["rest-skip"].frame.maxY, app.buttons["tab-train"].frame.minY,
+                                 "the rest clock sits above the tab bar, not under it")
         app.buttons["add-set-bench press"].tap()
         XCTAssertEqual(app.textFields["bench press-2-load"].value as? String, "135", "a new set copies the one before it")
         app.buttons["bench press-2-done"].tap()

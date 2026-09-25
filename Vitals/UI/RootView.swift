@@ -13,12 +13,16 @@ struct RootView: View {
     @State private var tab: AppTab = .train
 
     var body: some View {
-        ZStack {
-            page(.train) { TrainTab() }
-            page(.history) { HistoryTab() }
-            page(.settings) { SettingsTab() }
+        // The bar is stacked under the pages, not added as a safe-area inset: a NavigationStack doesn't pass an
+        // outside inset on to its content, which left the rest clock and the end of each page under the bar.
+        VStack(spacing: 0) {
+            ZStack {
+                page(.train) { TrainTab() }
+                page(.history) { HistoryTab() }
+                page(.settings) { SettingsTab() }
+            }
+            BottomNavigation(tab: $tab)
         }
-        .safeAreaInset(edge: .bottom, spacing: 0) { BottomNavigation(tab: $tab) }
         .background(VitalsStyle.canvas)
         .onChange(of: scenePhase) { _, phase in
             if phase != .active { coordinator.heartbeat() }

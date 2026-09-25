@@ -197,7 +197,7 @@ import SwiftData
                 try store.setHealthState(session, .notAllowed,
                                          message: "allow vitals to write workouts in the Health app: tap your profile, then Apps → vitals.")
             case .unavailable:
-                try store.setHealthState(session, .unavailable, message: "Apple Health isn’t available on this device.")
+                try store.setHealthState(session, .unavailable) // the state reads "unavailable on this device"
             case .failed(let reason):
                 try store.setHealthState(session, .failed, message: reason)
             }
