@@ -40,9 +40,27 @@ import SwiftUI
     init() { start() }
 
     func start() {
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("-ui-testing") {
+            // Automated UI tests only: a throwaway store, no Bluetooth, and Apple Health reported as unavailable so
+            // no system permission sheet appears. Not compiled into release builds.
+            let directory = FileManager.default.temporaryDirectory.appendingPathComponent("ui-tests-\(UUID().uuidString)")
+            services = try? AppServices(directory: directory, exporter: UnavailableHealthExporter(), activateBluetooth: false)
+            return
+        }
+        #endif
         services = try? AppServices(directory: URL.applicationSupportDirectory)
     }
 }
+
+#if DEBUG
+/// Behaves like a device without Apple Health. Used only by the UI tests' launch argument.
+struct UnavailableHealthExporter: WorkoutExporting {
+    func access() -> HealthAccess { .unavailable }
+    func requestAccess() async -> HealthAccess { .unavailable }
+    func export(_ payload: HealthWorkoutPayload) async -> HealthExportOutcome { .unavailable }
+}
+#endif
 
 /// The one local store, the strap monitor, Apple Health, and the coordinator that ties them together.
 @MainActor final class AppServices {

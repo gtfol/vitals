@@ -88,9 +88,9 @@ swift test                 # core calculations, parsing, timers (macOS or Linux)
 scripts/test-ios.sh        # simulator and device builds, then XCTest on an iPhone simulator (needs Xcode)
 ```
 
-`swift test` runs `VitalsTests/CoreTests.swift` against `Vitals/Core` through `Package.swift`. The Xcode test target adds SwiftData persistence and coordinator tests (reopening an on-disk store, routine copies, delete rules, records after edits, relaunch recovery, export retry). GitHub Actions runs both on macOS and checks that the committed project matches the generator.
+`swift test` runs `VitalsTests/CoreTests.swift` against `Vitals/Core` through `Package.swift`. The Xcode test target adds SwiftData persistence and coordinator tests (reopening an on-disk store, routine copies, delete rules, records after edits, relaunch recovery, export retry). `VitalsUITests` drives the real interface through a strength workout (start, add exercises, type loads and reps, complete sets, rest, finish, history, switch to kg, exercise history) and keeps a screenshot of each screen. In debug builds, the `-ui-testing` launch argument gives it a throwaway store, no Bluetooth, and Apple Health reported as unavailable so no permission sheet appears. GitHub Actions runs all of it on macOS, uploads the screenshots, and checks that the committed project matches the generator.
 
-Neither exercises a real strap, Bluetooth background behavior or real HealthKit writes. The device checklist is in [docs/verification.md](docs/verification.md).
+None of it exercises a real strap, Bluetooth background behavior or real HealthKit writes. The device checklist is in [docs/verification.md](docs/verification.md).
 
 ## Project layout
 
@@ -98,7 +98,7 @@ Neither exercises a real strap, Bluetooth background behavior or real HealthKit 
 - `Vitals/Persistence`: SwiftData models, schema, and `WorkoutStore`, the only place that changes the log.
 - `Vitals/Services`: `HeartRateMonitor` (CoreBluetooth), `HealthKitExporter` (HealthKit), and `SessionCoordinator`, which ties logging, the strap and Health together.
 - `Vitals/UI`: train, history, settings, and shared style.
-- `VitalsTests`: core, persistence and coordinator tests.
+- `VitalsTests`: core, persistence and coordinator tests. `VitalsUITests`: the workout flow with screenshots.
 - `scripts/generate-project.py`: standard-library-only project generator, adapted from capsule's. `scripts/make-icon.py` renders the app icon.
 
 Out of scope for v1: Zepp/Huami sync, sleep, HRV and recovery, GPS and routes, Apple Watch, cloud sync and accounts, nutrition, program builders, plate math, RPE, notifications, widgets.

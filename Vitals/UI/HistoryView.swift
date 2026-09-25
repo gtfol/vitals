@@ -25,6 +25,7 @@ struct HistoryTab: View {
                         }
                         .buttonStyle(.plain)
                         .accessibilityAddTraits(page == item ? .isSelected : [])
+                        .accessibilityIdentifier("history-\(item.rawValue)")
                     }
                     Spacer()
                 }
@@ -62,6 +63,7 @@ private struct SessionList: View {
                     ForEach(sessions) { session in
                         NavigationLink(value: SessionRoute(id: session.id)) { SessionRow(session: session, unit: coordinator.unit) }
                             .buttonStyle(.plain)
+                            .accessibilityIdentifier("session-row")
                         Hairline()
                     }
                 }
@@ -173,7 +175,7 @@ struct SessionDetailView: View {
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
-                Button("done") { Keyboard.dismiss() }
+                Button("done") { Keyboard.dismiss() }.accessibilityIdentifier("keyboard-done")
             }
         }
         .sheet(isPresented: $picking) {
@@ -220,6 +222,7 @@ private struct ExerciseList: View {
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
+                    .accessibilityIdentifier("exercise-\(exercise.name)")
                     Hairline()
                 }
                 TextAction("new exercise") { name = ""; creating = true }

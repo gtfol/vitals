@@ -180,6 +180,13 @@
 			path = "VitalsTests/PersistenceTests.swift";
 			sourceTree = "<group>";
 		};
+		C0EA7E3C3433003463D0D1B2 = {
+			isa = "PBXFileReference";
+			lastKnownFileType = "sourcecode.swift";
+			name = "WorkoutFlowUITests.swift";
+			path = "VitalsUITests/WorkoutFlowUITests.swift";
+			sourceTree = "<group>";
+		};
 		C0BEFA4AD6B30A160ADA2AB3 = {
 			isa = "PBXFileReference";
 			lastKnownFileType = "folder.assetcatalog";
@@ -234,9 +241,15 @@
 			path = "VitalsTests.xctest";
 			sourceTree = "BUILT_PRODUCTS_DIR";
 		};
+		6BA62E3CF61E8FF4BB115ED8 = {
+			isa = "PBXFileReference";
+			explicitFileType = "wrapper.cfbundle";
+			path = "VitalsUITests.xctest";
+			sourceTree = "BUILT_PRODUCTS_DIR";
+		};
 		0A3E27B8CA818264D75C8D81 = {
 			isa = "PBXGroup";
-			children = ("681C948D238C526E9E3424E0", "F739566ED5280322FF98A798",);
+			children = ("681C948D238C526E9E3424E0", "F739566ED5280322FF98A798", "6BA62E3CF61E8FF4BB115ED8",);
 			name = "Products";
 			sourceTree = "<group>";
 		};
@@ -282,9 +295,15 @@
 			name = "VitalsTests";
 			sourceTree = "<group>";
 		};
+		3D84EB0AFB591686470E57D8 = {
+			isa = "PBXGroup";
+			children = ("C0EA7E3C3433003463D0D1B2",);
+			name = "VitalsUITests";
+			sourceTree = "<group>";
+		};
 		19F479106CE8C3BA8C106518 = {
 			isa = "PBXGroup";
-			children = ("FC233BDA2344D97687F5A251", "C4E2E7F217DE3642E7714F4E", "0A3E27B8CA818264D75C8D81",);
+			children = ("FC233BDA2344D97687F5A251", "C4E2E7F217DE3642E7714F4E", "3D84EB0AFB591686470E57D8", "0A3E27B8CA818264D75C8D81",);
 			sourceTree = "<group>";
 		};
 		4DD7DE0A7183B312EF82BE34 = {
@@ -399,6 +418,16 @@
 			files = ("F66AE6A0EF5BF15C9B2F8C15", "FC51892C608987CC7DE5005C", "8C803D572B196CB29DC286D1",);
 			runOnlyForDeploymentPostprocessing = "0";
 		};
+		0DA72C4EC1A332A4D8B8A803 = {
+			isa = "PBXBuildFile";
+			fileRef = "C0EA7E3C3433003463D0D1B2";
+		};
+		47CE69D432E04CB4FA8A7324 = {
+			isa = "PBXSourcesBuildPhase";
+			buildActionMask = "2147483647";
+			files = ("0DA72C4EC1A332A4D8B8A803",);
+			runOnlyForDeploymentPostprocessing = "0";
+		};
 		492343FF1B3D81053CAD89E8 = {
 			isa = "PBXBuildFile";
 			fileRef = "C0BEFA4AD6B30A160ADA2AB3";
@@ -428,6 +457,12 @@
 			runOnlyForDeploymentPostprocessing = "0";
 		};
 		B10CDED79664567B030B2B4F = {
+			isa = "PBXFrameworksBuildPhase";
+			buildActionMask = "2147483647";
+			files = ();
+			runOnlyForDeploymentPostprocessing = "0";
+		};
+		483394092F406D60193C7956 = {
 			isa = "PBXFrameworksBuildPhase";
 			buildActionMask = "2147483647";
 			files = ();
@@ -579,6 +614,40 @@
 			defaultConfigurationIsVisible = "0";
 			defaultConfigurationName = "Release";
 		};
+		1DB36EACD1C83F7855DB7DAB = {
+			isa = "XCBuildConfiguration";
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = "$(VITALS_BUNDLE_IDENTIFIER).uitests";
+				TARGETED_DEVICE_FAMILY = "1";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				CODE_SIGN_STYLE = "Automatic";
+				GENERATE_INFOPLIST_FILE = "YES";
+				TEST_TARGET_NAME = "Vitals";
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks", "@loader_path/Frameworks",);
+			};
+			name = "Debug";
+		};
+		02E38A8C02B0B3DA8FC10AD1 = {
+			isa = "XCBuildConfiguration";
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = "$(VITALS_BUNDLE_IDENTIFIER).uitests";
+				TARGETED_DEVICE_FAMILY = "1";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				CODE_SIGN_STYLE = "Automatic";
+				GENERATE_INFOPLIST_FILE = "YES";
+				TEST_TARGET_NAME = "Vitals";
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks", "@loader_path/Frameworks",);
+			};
+			name = "Release";
+		};
+		DFF96C39B11EA56634DA3209 = {
+			isa = "XCConfigurationList";
+			buildConfigurations = ("1DB36EACD1C83F7855DB7DAB", "02E38A8C02B0B3DA8FC10AD1",);
+			defaultConfigurationIsVisible = "0";
+			defaultConfigurationName = "Release";
+		};
 		C1E9827DB735CA9BAA54A540 = {
 			isa = "PBXNativeTarget";
 			buildConfigurationList = "06CB67C35A91E16DBD17B949";
@@ -613,6 +682,29 @@
 			productReference = "F739566ED5280322FF98A798";
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		36D01909EC5682B54FA69D1E = {
+			isa = "PBXContainerItemProxy";
+			containerPortal = "244210E48437B6556980A702";
+			proxyType = "1";
+			remoteGlobalIDString = "C1E9827DB735CA9BAA54A540";
+			remoteInfo = "Vitals";
+		};
+		E93CD1B61BE68731C44F3E18 = {
+			isa = "PBXTargetDependency";
+			target = "C1E9827DB735CA9BAA54A540";
+			targetProxy = "36D01909EC5682B54FA69D1E";
+		};
+		7DFF4159D29BE2155F6C34B5 = {
+			isa = "PBXNativeTarget";
+			buildConfigurationList = "DFF96C39B11EA56634DA3209";
+			buildPhases = ("47CE69D432E04CB4FA8A7324", "483394092F406D60193C7956",);
+			buildRules = ();
+			dependencies = ("E93CD1B61BE68731C44F3E18",);
+			name = "VitalsUITests";
+			productName = "VitalsUITests";
+			productReference = "6BA62E3CF61E8FF4BB115ED8";
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		244210E48437B6556980A702 = {
 			isa = "PBXProject";
 			attributes = {
@@ -623,6 +715,10 @@
 						CreatedOnToolsVersion = "26.6";
 					};
 					9805CBD60EB4F66728D5D195 = {
+						CreatedOnToolsVersion = "26.6";
+						TestTargetID = "C1E9827DB735CA9BAA54A540";
+					};
+					7DFF4159D29BE2155F6C34B5 = {
 						CreatedOnToolsVersion = "26.6";
 						TestTargetID = "C1E9827DB735CA9BAA54A540";
 					};
@@ -637,7 +733,7 @@
 			productRefGroup = "0A3E27B8CA818264D75C8D81";
 			projectDirPath = "";
 			projectRoot = "";
-			targets = ("C1E9827DB735CA9BAA54A540", "9805CBD60EB4F66728D5D195",);
+			targets = ("C1E9827DB735CA9BAA54A540", "9805CBD60EB4F66728D5D195", "7DFF4159D29BE2155F6C34B5",);
 		};
 	};
 	rootObject = "244210E48437B6556980A702";

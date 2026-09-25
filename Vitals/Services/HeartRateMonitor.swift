@@ -18,8 +18,8 @@ enum StrapStatus: Equatable, Sendable {
     var label: String {
         switch self {
         case .noStrap: "no strap chosen"
-        case .bluetoothOff: "Bluetooth is off"
-        case .bluetoothDenied: "Bluetooth access is off for vitals"
+        case .bluetoothOff: "disconnected · Bluetooth is off"
+        case .bluetoothDenied: "disconnected · Bluetooth access is off for vitals"
         case .bluetoothUnavailable: "Bluetooth isn’t available"
         case .searching: "searching"
         case .connected: "connected"
@@ -153,15 +153,10 @@ struct StrapCandidate: Identifiable, Equatable, Sendable {
         }
         peripheral = target
         target.delegate = self
-        switch target.state {
-        case .connected:
-            didConnect(target)
-        case .connecting:
-            status = hasConnected ? .reconnecting : .searching
-        default:
-            status = hasConnected ? .reconnecting : .searching
-            central.connect(target, options: nil)
-        }
+        status = hasConnected ? .reconnecting : .searching
+        // Even a strap the system already has connected (restored, or held by another app) needs vitals' own
+        // connect before its services can be used; for a connected strap, iOS reports it right away.
+        if target.state != .connecting { central.connect(target, options: nil) }
     }
 
     private func beginScan() {
@@ -192,6 +187,8 @@ struct StrapCandidate: Identifiable, Equatable, Sendable {
             connectToChosenStrap()
         case .poweredOff:
             if status == .connected || status == .noHeartRateService { lostAt = .now }
+            // iOS invalidates peripherals when Bluetooth turns off; retrieve the strap again when it's back on.
+            peripheral = nil; latest = nil; sensorContact = nil
             status = strapID == nil ? .noStrap : .bluetoothOff
         case .unauthorized:
             status = .bluetoothDenied
@@ -230,6 +227,10 @@ struct StrapCandidate: Identifiable, Equatable, Sendable {
         hasConnected = true
         lostAt = nil
         status = .connected
+        if scanningForStrap {
+            scanningForStrap = false
+            if !isChoosing { central?.stopScan() }
+        }
         if strapName == nil, let name = connected.name { strapName = name; onSelectionChange?(strapID, name) }
         connected.delegate = self
         connected.discoverServices([Self.heartRateService, Self.batteryService])

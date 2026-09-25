@@ -10,8 +10,15 @@ struct ExerciseCard: View {
     @State private var loaded = false
     @State private var showingHistory = false
     @State private var confirmRemove = false
-    @ScaledMetric(relativeTo: .title3) private var loadWidth: CGFloat = 76
-    @ScaledMetric(relativeTo: .title3) private var repsWidth: CGFloat = 56
+    @ScaledMetric(relativeTo: .title3) private var scaledLoadWidth: CGFloat = 76
+    @ScaledMetric(relativeTo: .title3) private var scaledRepsWidth: CGFloat = 56
+    @Environment(\.dynamicTypeSize) private var typeSize
+
+    // At accessibility sizes the "last" column is dropped (it stays in the line above the table) and fields stop
+    // growing, so a row still fits a narrow iPhone.
+    private var compact: Bool { typeSize.isAccessibilitySize }
+    private var loadWidth: CGFloat { compact ? min(scaledLoadWidth, 132) : scaledLoadWidth }
+    private var repsWidth: CGFloat { compact ? min(scaledRepsWidth, 96) : scaledRepsWidth }
 
     var body: some View {
         let unit = coordinator.unit
@@ -32,7 +39,7 @@ struct ExerciseCard: View {
             if !sets.isEmpty {
                 HStack(spacing: 8) {
                     Text("set").frame(width: 36)
-                    Text("last").frame(maxWidth: .infinity, alignment: .leading)
+                    if compact { Spacer(minLength: 0) } else { Text("last").frame(maxWidth: .infinity, alignment: .leading) }
                     Text(unit.symbol).frame(width: loadWidth)
                     Text("reps").frame(width: repsWidth)
                     Text("done").frame(width: 44)
@@ -42,12 +49,13 @@ struct ExerciseCard: View {
                 .accessibilityHidden(true)
             }
             ForEach(sets) { set in
-                SetRow(set: set, label: labels[set.id] ?? "", previous: matches[set.id],
+                SetRow(set: set, exercise: entry.name, label: labels[set.id] ?? "", previous: matches[set.id],
                        hits: hits.filter { $0.setID == set.id }, isBodyweight: entry.isBodyweight, unit: unit,
-                       loadWidth: loadWidth, repsWidth: repsWidth)
+                       loadWidth: loadWidth, repsWidth: repsWidth, showsPrevious: !compact)
             }
             TextAction("add set") { coordinator.addSet(to: entry) }
                 .accessibilityLabel("add set to \(entry.name)")
+                .accessibilityIdentifier("add-set-\(entry.name)")
         }
         .task(id: entry.id) { load() }
         .sheet(isPresented: $showingHistory) {
@@ -125,6 +133,7 @@ struct ExerciseCard: View {
 private struct SetRow: View {
     @Environment(SessionCoordinator.self) private var coordinator
     let set: LoggedSet
+    let exercise: String
     let label: String
     let previous: SetEntry?
     let hits: [RecordHit]
@@ -132,6 +141,7 @@ private struct SetRow: View {
     let unit: WeightUnit
     let loadWidth: CGFloat
     let repsWidth: CGFloat
+    let showsPrevious: Bool
 
     var body: some View {
         let name = set.kind == .warmup ? "warm-up set" : "set \(label)"
@@ -147,21 +157,26 @@ private struct SetRow: View {
                 }
                 .accessibilityLabel(name)
                 .accessibilityHint("options: warm-up or working, delete")
-                Text(previous.map { LoadText.set(reps: $0.reps, kilograms: $0.loadKilograms, unit: unit, isBodyweight: isBodyweight) } ?? "–")
-                    .font(VitalsStyle.caption).foregroundStyle(VitalsStyle.secondary)
-                    .lineLimit(1).minimumScaleFactor(0.75)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .accessibilityLabel(previous == nil ? "no set last time" : "last time \(LoadText.set(reps: previous!.reps, kilograms: previous!.loadKilograms, unit: unit, isBodyweight: isBodyweight))")
+                if showsPrevious {
+                    Text(previous.map { LoadText.set(reps: $0.reps, kilograms: $0.loadKilograms, unit: unit, isBodyweight: isBodyweight) } ?? "–")
+                        .font(VitalsStyle.caption).foregroundStyle(VitalsStyle.secondary)
+                        .lineLimit(1).minimumScaleFactor(0.75)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .accessibilityLabel(previous.map { "last time \(LoadText.set(reps: $0.reps, kilograms: $0.loadKilograms, unit: unit, isBodyweight: isBodyweight))" } ?? "no set last time")
+                } else {
+                    Spacer(minLength: 0)
+                }
                 NumberField(value: set.loadKilograms > 0 ? LoadText.number(set.loadKilograms, unit: unit) : "", placeholder: "bw",
                             keyboard: .decimalPad, label: "\(name) \(isBodyweight ? "added load" : "load") in \(unit.symbol)",
-                            width: loadWidth) { text in
+                            width: loadWidth, identifier: "\(exercise)-\(label)-load") { text in
                     guard let kilograms = NumberText.parseLoad(text, unit: unit) else {
                         coordinator.message = "enter a load of 0 or more. 0 means bodyweight."
                         return
                     }
                     coordinator.perform { try coordinator.store.update(set, loadKilograms: kilograms) }
                 }
-                NumberField(value: "\(set.reps)", placeholder: "0", keyboard: .numberPad, label: "\(name) reps", width: repsWidth) { text in
+                NumberField(value: "\(set.reps)", placeholder: "0", keyboard: .numberPad, label: "\(name) reps", width: repsWidth,
+                            identifier: "\(exercise)-\(label)-reps") { text in
                     guard let reps = NumberText.parseReps(text) else {
                         coordinator.message = "enter reps from 0 to \(NumberText.maximumReps)."
                         return
@@ -176,6 +191,7 @@ private struct SetRow: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(set.completed ? "\(name) done" : "mark \(name) done")
+                .accessibilityIdentifier("\(exercise)-\(label)-done")
                 .accessibilityHint(set.completed ? "double tap to undo" : "")
             }
             ForEach(hits) { hit in
@@ -204,6 +220,7 @@ struct NumberField: View {
     let keyboard: UIKeyboardType
     let label: String
     var width: CGFloat = 72
+    var identifier: String?
     let commit: (String) -> Void
     @State private var text = ""
     @FocusState private var focused: Bool
@@ -222,6 +239,7 @@ struct NumberField: View {
             }
             .accessibilityLabel(label)
             .accessibilityValue(value.isEmpty ? placeholder : value)
+            .accessibilityIdentifier(identifier ?? label)
             .onAppear { text = value }
             .onChange(of: value) { _, newValue in if !focused { text = newValue } }
             .onChange(of: focused) { _, isFocused in

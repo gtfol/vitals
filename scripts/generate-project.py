@@ -34,13 +34,16 @@ for path in sorted(root.glob('Vitals/**/*.swift')):
     rel = str(path.relative_to(root)); files[rel] = reference(rel, 'sourcecode.swift')
 for path in sorted(root.glob('VitalsTests/*.swift')):
     rel = str(path.relative_to(root)); files[rel] = reference(rel, 'sourcecode.swift')
+for path in sorted(root.glob('VitalsUITests/*.swift')):
+    rel = str(path.relative_to(root)); files[rel] = reference(rel, 'sourcecode.swift')
 assets = reference('Vitals/Assets.xcassets', 'folder.assetcatalog')
 info = reference('Vitals/Info.plist', 'text.plist.xml')
 entitlements = reference('Vitals/Vitals.entitlements', 'text.plist.entitlements')
 bundled = [reference(str(path.relative_to(root)), 'file') for path in sorted(root.glob('Vitals/Resources/*'))]
 app = add('app-product', {'isa': 'PBXFileReference', 'explicitFileType': 'wrapper.application', 'path': 'Vitals.app', 'sourceTree': 'BUILT_PRODUCTS_DIR'})
 tests = add('test-product', {'isa': 'PBXFileReference', 'explicitFileType': 'wrapper.cfbundle', 'path': 'VitalsTests.xctest', 'sourceTree': 'BUILT_PRODUCTS_DIR'})
-products = add('products', {'isa': 'PBXGroup', 'children': [app, tests], 'name': 'Products', 'sourceTree': '<group>'})
+uitests = add('uitest-product', {'isa': 'PBXFileReference', 'explicitFileType': 'wrapper.cfbundle', 'path': 'VitalsUITests.xctest', 'sourceTree': 'BUILT_PRODUCTS_DIR'})
+products = add('products', {'isa': 'PBXGroup', 'children': [app, tests, uitests], 'name': 'Products', 'sourceTree': '<group>'})
 
 def group(name, prefix):
     children = [v for k, v in files.items() if k.startswith(prefix) and '/' not in k[len(prefix):]]
@@ -48,6 +51,7 @@ def group(name, prefix):
 
 app_sources = [v for k, v in files.items() if k.startswith('Vitals/')]
 test_sources = [v for k, v in files.items() if k.startswith('VitalsTests/')]
+uitest_sources = [v for k, v in files.items() if k.startswith('VitalsUITests/')]
 subgroups = []
 for folder in sorted({str(Path(k).parent) for k in files if k.startswith('Vitals/') and str(Path(k).parent) != 'Vitals'}):
     subgroups.append(add('group-' + folder, {'isa': 'PBXGroup', 'children': group(folder, folder + '/'), 'name': Path(folder).name, 'sourceTree': '<group>'}))
@@ -55,7 +59,8 @@ resource_group = add('group-resources', {'isa': 'PBXGroup', 'children': bundled,
 appgroup = add('app-group', {'isa': 'PBXGroup', 'children': group('Vitals', 'Vitals/') + subgroups + [resource_group, assets, info, entitlements],
                              'name': 'Vitals', 'sourceTree': '<group>'})
 testgroup = add('test-group', {'isa': 'PBXGroup', 'children': test_sources, 'name': 'VitalsTests', 'sourceTree': '<group>'})
-main = add('main-group', {'isa': 'PBXGroup', 'children': [appgroup, testgroup, products], 'sourceTree': '<group>'})
+uitestgroup = add('uitest-group', {'isa': 'PBXGroup', 'children': uitest_sources, 'name': 'VitalsUITests', 'sourceTree': '<group>'})
+main = add('main-group', {'isa': 'PBXGroup', 'children': [appgroup, testgroup, uitestgroup, products], 'sourceTree': '<group>'})
 
 def phase(name, isa, refs):
     builds = [add(name + ref, {'isa': 'PBXBuildFile', 'fileRef': ref}) for ref in refs]
@@ -63,9 +68,11 @@ def phase(name, isa, refs):
 
 appSources = phase('app-sources', 'PBXSourcesBuildPhase', app_sources)
 testSources = phase('test-sources', 'PBXSourcesBuildPhase', test_sources)
+uitestSources = phase('uitest-sources', 'PBXSourcesBuildPhase', uitest_sources)
 resources = phase('resources', 'PBXResourcesBuildPhase', [assets] + bundled)
 appFrameworks = phase('app-frameworks', 'PBXFrameworksBuildPhase', [])
 testFrameworks = phase('test-frameworks', 'PBXFrameworksBuildPhase', [])
+uitestFrameworks = phase('uitest-frameworks', 'PBXFrameworksBuildPhase', [])
 
 common = {'COPY_PHASE_STRIP': 'NO', 'LM_SKIP_METADATA_EXTRACTION': 'YES', 'CLANG_ENABLE_MODULES': 'YES', 'CLANG_ENABLE_OBJC_ARC': 'YES',
           'GCC_C_LANGUAGE_STANDARD': 'gnu17', 'CLANG_CXX_LANGUAGE_STANDARD': 'gnu++20', 'IPHONEOS_DEPLOYMENT_TARGET': '17.0',
@@ -83,6 +90,9 @@ testSettings = {'PRODUCT_NAME': '$(TARGET_NAME)', 'PRODUCT_BUNDLE_IDENTIFIER': '
                 'SUPPORTED_PLATFORMS': 'iphoneos iphonesimulator', 'CODE_SIGN_STYLE': 'Automatic', 'GENERATE_INFOPLIST_FILE': 'YES',
                 'TEST_HOST': '$(BUILT_PRODUCTS_DIR)/Vitals.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Vitals', 'BUNDLE_LOADER': '$(TEST_HOST)',
                 'LD_RUNPATH_SEARCH_PATHS': ['$(inherited)', '@executable_path/Frameworks', '@loader_path/Frameworks']}
+uitestSettings = {'PRODUCT_NAME': '$(TARGET_NAME)', 'PRODUCT_BUNDLE_IDENTIFIER': '$(VITALS_BUNDLE_IDENTIFIER).uitests', 'TARGETED_DEVICE_FAMILY': '1',
+                  'SUPPORTED_PLATFORMS': 'iphoneos iphonesimulator', 'CODE_SIGN_STYLE': 'Automatic', 'GENERATE_INFOPLIST_FILE': 'YES',
+                  'TEST_TARGET_NAME': 'Vitals', 'LD_RUNPATH_SEARCH_PATHS': ['$(inherited)', '@executable_path/Frameworks', '@loader_path/Frameworks']}
 
 def configs(name, settings):
     refs = []
@@ -101,6 +111,7 @@ def configs(name, settings):
 projectConfigs = configs('project', common)
 appConfigs = configs('app', appSettings)
 testConfigs = configs('tests', testSettings)
+uitestConfigs = configs('uitests', uitestSettings)
 appTarget = add('app-target', {'isa': 'PBXNativeTarget', 'buildConfigurationList': appConfigs, 'buildPhases': [appSources, appFrameworks, resources],
                                'buildRules': [], 'dependencies': [], 'name': 'Vitals', 'productName': 'Vitals', 'productReference': app,
                                'productType': 'com.apple.product-type.application'})
@@ -110,13 +121,20 @@ dep = add('test-dependency', {'isa': 'PBXTargetDependency', 'target': appTarget,
 testTarget = add('test-target', {'isa': 'PBXNativeTarget', 'buildConfigurationList': testConfigs, 'buildPhases': [testSources, testFrameworks],
                                  'buildRules': [], 'dependencies': [dep], 'name': 'VitalsTests', 'productName': 'VitalsTests',
                                  'productReference': tests, 'productType': 'com.apple.product-type.bundle.unit-test'})
+uiproxy = add('uitest-proxy', {'isa': 'PBXContainerItemProxy', 'containerPortal': uid('project'), 'proxyType': '1', 'remoteGlobalIDString': appTarget,
+                               'remoteInfo': 'Vitals'})
+uidep = add('uitest-dependency', {'isa': 'PBXTargetDependency', 'target': appTarget, 'targetProxy': uiproxy})
+uitestTarget = add('uitest-target', {'isa': 'PBXNativeTarget', 'buildConfigurationList': uitestConfigs, 'buildPhases': [uitestSources, uitestFrameworks],
+                                     'buildRules': [], 'dependencies': [uidep], 'name': 'VitalsUITests', 'productName': 'VitalsUITests',
+                                     'productReference': uitests, 'productType': 'com.apple.product-type.bundle.ui-testing'})
 project = add('project', {'isa': 'PBXProject',
                           'attributes': {'BuildIndependentTargetsInParallel': 'YES', 'LastUpgradeCheck': '2660',
                                          'TargetAttributes': {appTarget: {'CreatedOnToolsVersion': '26.6'},
-                                                              testTarget: {'CreatedOnToolsVersion': '26.6', 'TestTargetID': appTarget}}},
+                                                              testTarget: {'CreatedOnToolsVersion': '26.6', 'TestTargetID': appTarget},
+                                                              uitestTarget: {'CreatedOnToolsVersion': '26.6', 'TestTargetID': appTarget}}},
                           'buildConfigurationList': projectConfigs, 'compatibilityVersion': 'Xcode 14.0', 'developmentRegion': 'en',
                           'hasScannedForEncodings': '0', 'knownRegions': ['en', 'Base'], 'mainGroup': main, 'productRefGroup': products,
-                          'projectDirPath': '', 'projectRoot': '', 'targets': [appTarget, testTarget]})
+                          'projectDirPath': '', 'projectRoot': '', 'targets': [appTarget, testTarget, uitestTarget]})
 output = '// !$*UTF8*$!\n' + serialize({'archiveVersion': '1', 'classes': {}, 'objectVersion': '56', 'objects': objects, 'rootObject': project}) + '\n'
 (root / 'Vitals.xcodeproj').mkdir(exist_ok=True)
 (root / 'Vitals.xcodeproj/project.pbxproj').write_text(output)
@@ -125,12 +143,13 @@ def buildable(identifier, name, product):
     return (f'<BuildableReference BuildableIdentifier="primary" BlueprintIdentifier="{identifier}" BuildableName="{product}" '
             f'BlueprintName="{name}" ReferencedContainer="container:Vitals.xcodeproj"/>')
 a = buildable(appTarget, 'Vitals', 'Vitals.app'); t = buildable(testTarget, 'VitalsTests', 'VitalsTests.xctest')
+u = buildable(uitestTarget, 'VitalsUITests', 'VitalsUITests.xctest')
 scheme = f'''<?xml version="1.0" encoding="UTF-8"?>
 <Scheme LastUpgradeVersion="2660" version="1.3">
   <BuildAction parallelizeBuildables="YES" buildImplicitDependencies="YES"><BuildActionEntries>
     <BuildActionEntry buildForTesting="YES" buildForRunning="YES" buildForProfiling="YES" buildForArchiving="YES" buildForAnalyzing="YES">{a}</BuildActionEntry>
   </BuildActionEntries></BuildAction>
-  <TestAction buildConfiguration="Debug" selectedDebuggerIdentifier="Xcode.DebuggerFoundation.Debugger.LLDB" selectedLauncherIdentifier="Xcode.IDEFoundation.Launcher.LLDB" shouldUseLaunchSchemeArgsEnv="YES"><Testables><TestableReference skipped="NO" parallelizable="NO">{t}</TestableReference></Testables></TestAction>
+  <TestAction buildConfiguration="Debug" selectedDebuggerIdentifier="Xcode.DebuggerFoundation.Debugger.LLDB" selectedLauncherIdentifier="Xcode.IDEFoundation.Launcher.LLDB" shouldUseLaunchSchemeArgsEnv="YES"><Testables><TestableReference skipped="NO" parallelizable="NO">{t}</TestableReference><TestableReference skipped="NO" parallelizable="NO">{u}</TestableReference></Testables></TestAction>
   <LaunchAction buildConfiguration="Debug" selectedDebuggerIdentifier="Xcode.DebuggerFoundation.Debugger.LLDB" selectedLauncherIdentifier="Xcode.IDEFoundation.Launcher.LLDB" launchStyle="0" useCustomWorkingDirectory="NO" ignoresPersistentStateOnLaunch="NO" debugDocumentVersioning="YES" allowLocationSimulation="NO"><BuildableProductRunnable runnableDebuggingMode="0">{a}</BuildableProductRunnable></LaunchAction>
   <ProfileAction buildConfiguration="Release" shouldUseLaunchSchemeArgsEnv="YES" savedToolIdentifier="" useCustomWorkingDirectory="NO" debugDocumentVersioning="YES"><BuildableProductRunnable runnableDebuggingMode="0">{a}</BuildableProductRunnable></ProfileAction>
   <AnalyzeAction buildConfiguration="Debug"/>

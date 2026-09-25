@@ -28,7 +28,7 @@ struct SettingsTab: View {
             .toolbar {
                 ToolbarItemGroup(placement: .keyboard) {
                     Spacer()
-                    Button("done") { Keyboard.dismiss() }
+                    Button("done") { Keyboard.dismiss() }.accessibilityIdentifier("keyboard-done")
                 }
             }
             .sheet(isPresented: $choosingStrap) { StrapChooser() }

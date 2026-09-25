@@ -36,6 +36,19 @@ jobs:
           git diff --exit-code -- Vitals.xcodeproj
       - name: Build simulator and device, test on an iPhone simulator
         run: scripts/test-ios.sh
+      - name: Export UI test screenshots
+        if: always()
+        run: |
+          if [ -d TestResults.xcresult ]; then
+            xcrun xcresulttool export attachments --path TestResults.xcresult --output-path Screenshots || true
+          fi
+      - name: Screenshots
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: screenshots
+          path: Screenshots
+          if-no-files-found: ignore
       - name: Test results
         if: always()
         uses: actions/upload-artifact@v7

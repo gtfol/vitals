@@ -66,6 +66,7 @@ struct ExercisePicker: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .accessibilityIdentifier("pick-\(exercise.name)")
         .listRowBackground(Color.clear)
         .listRowSeparatorTint(VitalsStyle.divider)
     }

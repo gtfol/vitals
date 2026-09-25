@@ -273,6 +273,8 @@ enum StoreError: LocalizedError, Equatable {
 
     /// Saves the finished session locally. Apple Health export is a separate step with its own state.
     func finish(_ session: WorkoutSession, at end: Date) throws {
+        // Samples received after the finish time (while the summary was open) aren't part of the workout.
+        for sample in session.heartRateSamples where sample.timestamp > end { context.delete(sample) }
         session.endedAt = max(end, session.startedAt)
         session.lastSeenAt = max(session.lastSeenAt, session.endedAt ?? end)
         session.stateRaw = SessionState.completed.rawValue
@@ -284,7 +286,8 @@ enum StoreError: LocalizedError, Equatable {
     }
 
     private func summarizeHeartRate(_ session: WorkoutSession) {
-        let stats = HeartRateStats(session.heartRatePoints)
+        let end = session.endedAt ?? .distantFuture
+        let stats = HeartRateStats(session.heartRatePoints.filter { $0.date <= end })
         session.heartRateSampleCount = stats.count
         session.heartRateAverage = stats.average; session.heartRateMinimum = stats.lowest; session.heartRateMaximum = stats.highest
     }
@@ -440,7 +443,7 @@ enum StoreError: LocalizedError, Equatable {
         let logs = session.exerciseLogs
         return WorkoutSummary.build(startedAt: session.startedAt, endedAt: max(end, session.startedAt), exercises: logs,
                                     priorBests: try priorBests(for: Array(Set(logs.map(\.exerciseID))), before: session),
-                                    heartRate: session.heartRatePoints)
+                                    heartRate: session.heartRatePoints.filter { $0.date <= end })
     }
 
     /// Finished sessions only, so an in-progress workout never counts as history.

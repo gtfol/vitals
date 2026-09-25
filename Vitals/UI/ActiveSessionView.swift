@@ -33,6 +33,7 @@ struct ActiveSessionView: View {
                         }
                         Button { picking = true } label: { Text("add exercise").frame(maxWidth: .infinity) }
                             .vitalsPrimaryAction()
+                            .accessibilityIdentifier("add-exercise")
                         if let message = coordinator.message {
                             Text(message).font(VitalsStyle.caption).foregroundStyle(VitalsStyle.secondary)
                                 .accessibilityAddTraits(.updatesFrequently)
@@ -66,11 +67,12 @@ struct ActiveSessionView: View {
             ToolbarItem(placement: .topBarTrailing) {
                 Button { Keyboard.dismiss(); finish(.now) } label: { Text("finish").font(VitalsStyle.heading).frame(minHeight: 44) }
                     .accessibilityHint("review and save this workout")
+                    .accessibilityIdentifier("finish-workout")
             }
             .quietBackground()
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
-                Button("done") { Keyboard.dismiss() }
+                Button("done") { Keyboard.dismiss() }.accessibilityIdentifier("keyboard-done")
             }
         }
         .sheet(isPresented: $picking) {
@@ -134,7 +136,8 @@ struct RestBar: View {
                                             : "rest \(elapsed) of \(ClockText.duration(timer.target))")
                         Spacer()
                         TextAction("+30s") { coordinator.extendRest() }.accessibilityLabel("add 30 seconds of rest")
-                        TextAction(over ? "done" : "skip") { coordinator.skipRest() }
+                            .accessibilityIdentifier("rest-extend")
+                        TextAction(over ? "done" : "skip") { coordinator.skipRest() }.accessibilityIdentifier("rest-skip")
                     }
                 }
                 .padding(.horizontal, VitalsStyle.gutter)

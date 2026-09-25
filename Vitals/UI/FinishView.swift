@@ -25,7 +25,9 @@ struct FinishView: View {
             .vitalsTitle(session.modelContext != nil && session.state == .completed ? "workout saved" : "finish workout")
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    if session.modelContext != nil, session.state == .completed { Button("done") { dismiss() } }
+                    if session.modelContext != nil, session.state == .completed {
+                        Button("done") { dismiss() }.accessibilityIdentifier("finish-done")
+                    }
                 }
             }
             .interactiveDismissDisabled(saving)
@@ -63,6 +65,7 @@ struct FinishView: View {
                     }
                     .vitalsPrimaryAction()
                     .disabled(saving)
+                    .accessibilityIdentifier("save-workout")
                     TextAction("keep training", secondary: true) { dismiss() }.disabled(saving)
                     TextAction("discard workout", role: .destructive, secondary: true) { confirmDiscard = true }.disabled(saving)
                 }

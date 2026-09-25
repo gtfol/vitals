@@ -66,6 +66,7 @@ private struct BottomNavigation: View {
                     .buttonStyle(.plain)
                     .accessibilityLabel(item == .train && coordinator.activeSession != nil ? "train, workout in progress" : item.rawValue)
                     .accessibilityAddTraits(tab == item ? .isSelected : [])
+                    .accessibilityIdentifier("tab-\(item.rawValue)")
                 }
             }
             .frame(maxWidth: .infinity)
