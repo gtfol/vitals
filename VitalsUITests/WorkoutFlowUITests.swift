@@ -84,10 +84,22 @@ final class WorkoutFlowUITests: XCTestCase {
         if done.waitForExistence(timeout: 2) { done.tap() }
     }
 
+    /// Screenshots document the run; the assertions are what the test checks. The simulator on CI has timed out
+    /// taking one while vitals was idle, so a failed capture is recorded as an expected failure and the flow
+    /// carries on. Every other failure still stops the test.
     @MainActor private func capture(_ app: XCUIApplication, _ name: String) {
-        let attachment = XCTAttachment(screenshot: app.screenshot())
-        attachment.name = name
-        attachment.lifetime = .keepAlways
-        add(attachment)
+        let continues = continueAfterFailure
+        continueAfterFailure = true
+        defer { continueAfterFailure = continues }
+        let options = XCTExpectedFailure.Options()
+        options.isStrict = false
+        XCTExpectFailure("the simulator didn't return a screenshot of \(name)", options: options) {
+            let screenshot = app.screenshot()
+            guard !screenshot.pngRepresentation.isEmpty else { return }
+            let attachment = XCTAttachment(screenshot: screenshot)
+            attachment.name = name
+            attachment.lifetime = .keepAlways
+            add(attachment)
+        }
     }
 }

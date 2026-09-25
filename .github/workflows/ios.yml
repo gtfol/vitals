@@ -13,7 +13,8 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: ios-${{ github.ref }}
+  # Keyed by event too, so a manual run (for screenshot previews) doesn't cancel a push run of the same branch.
+  group: ios-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   core:
@@ -51,7 +52,7 @@ jobs:
         if: always() && github.event_name == 'workflow_dispatch' && inputs.screenshot_previews
         run: |
           shopt -s nullglob
-          [ -f Screenshots/manifest.json ] && cat Screenshots/manifest.json
+          if [ -f Screenshots/manifest.json ]; then cat Screenshots/manifest.json; echo; fi
           for file in Screenshots/*.png Screenshots/*.jpeg Screenshots/*.jpg; do
             sips -s format jpeg -s formatOptions 55 -Z 900 "$file" --out "$RUNNER_TEMP/preview.jpg" >/dev/null
             echo "=====BEGIN $(basename "$file")====="
