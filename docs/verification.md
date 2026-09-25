@@ -2,17 +2,21 @@
 
 ## What has been checked
 
-Status as of the first build, September 25, 2026. Nothing has been installed on an iPhone yet.
+Status as of September 25, 2026. Nothing has been installed on an iPhone yet.
 
-- **Core logic, `swift test`:** 27 tests pass with Swift 6.3.3 in Swift 6 language mode with warnings as errors, on Linux (official `swift:6.3.3-noble` toolchain). They cover unit round trips, input parsing, bodyweight text, clocks and the rest timer, Epley limits, volume, records (baseline, ties, warm-ups, incomplete, bodyweight, edits and deletes, unit switching), exercise history, previous-session pairing, workout summaries, Heart Rate Measurement parsing (8/16-bit, contact, energy, RR, truncated packets, slices), battery, statistics, gaps, chart thinning, zones, the Health payload window, sync identifiers and recovery times.
-- **Bluetooth and HealthKit services:** `HeartRateMonitor` and `HealthKitExporter` were type-checked with the same compiler settings against stand-in `CoreBluetooth` and `HealthKit` modules that mirror the API signatures and `Sendable` annotations Apple documents. That found a real Swift 6 data-race error, which is fixed. It doesn't replace compiling against the iOS SDK.
-- **iOS build and XCTest:** GitHub Actions ([ios.yml](../.github/workflows/ios.yml)) builds for the simulator and for devices (unsigned) with Xcode 26.6 on macOS 26, checks that the committed project matches the generator, and runs the core, persistence and coordinator tests on an iPhone simulator. See the latest run on the branch for the current result.
+- **Core logic, `swift test`:** 27 tests pass with Swift 6.3.3 in Swift 6 language mode with warnings as errors, on Linux (official `swift:6.3.3-noble` toolchain), and on macOS 26 in GitHub Actions. They cover unit round trips, input parsing, bodyweight text, clocks and the rest timer, Epley limits, volume, records (baseline, ties, warm-ups, incomplete, bodyweight, edits and deletes, unit switching), exercise history, previous-session pairing, workout summaries, Heart Rate Measurement parsing (8/16-bit, contact, energy, RR, truncated packets, slices), battery, statistics, gaps, chart thinning, zones, the Health payload window, sync identifiers and recovery times.
+- **Bluetooth and HealthKit services:** `HeartRateMonitor` and `HealthKitExporter` were type-checked with the same compiler settings against stand-in `CoreBluetooth` and `HealthKit` modules that mirror the API signatures and `Sendable` annotations Apple documents. That found a real Swift 6 data-race error, which is fixed. Both now also compile against the iOS SDK in CI, with the same settings.
+- **iOS build and XCTest:** GitHub Actions ([ios.yml](../.github/workflows/ios.yml)) checks that the committed project matches the generator, builds for the simulator and for devices (unsigned) with Xcode 26.6 on macOS 26, and tests on an iPhone 17 Pro simulator running iOS 26.5. [Run 5](https://github.com/gtfol/vitals/actions/runs/36198484916) passed: 39 unit tests (27 core, 7 SwiftData persistence, 5 coordinator) and the UI workflow test.
+- **UI workflow:** `WorkoutFlowUITests` starts a strength workout, adds bench press and squat by searching, types loads and reps, and completes sets. It checks that completing a set starts rest and that a new set copies the one before it. Then it finishes, opens the workout from history, switches to kg in settings, and finds the same bench set converted (61.23 × 5) in exercise history. A screenshot of each of those eight screens is kept in the run's `screenshots` artifact.
 
-The simulator tests use an on-disk SwiftData store and a fake exporter. They don't exercise a strap, Bluetooth, background execution, real HealthKit writes or the rendered interface.
+The persistence and coordinator tests use an on-disk SwiftData store and a fake exporter. The UI test uses a throwaway store, no Bluetooth, and Apple Health reported as unavailable. None of it exercises a strap, Bluetooth, background execution or real HealthKit writes. Everything ran on iOS 26.5. vitals is built for iOS 17, but it hasn't run on iOS 17 or 18 yet.
 
 ## Physical iPhone checklist
 
 Set up first: in Zepp, Device → Helio Strap → Health Monitoring → Heart Rate Push on. Fully quit Zepp before each Bluetooth test. Test HealthKit on a real iPhone, not only the simulator.
+
+iOS 17
+- [ ] Run a strength workout, the rest timer, history and an Apple Health export on iOS 17 (an iPhone on iOS 17, or the iOS 17 simulator runtime for everything but Bluetooth). CI only runs the current simulator.
 
 Lift log
 - [ ] Log a strength workout with two exercises, completed working sets and warm-up sets. Change lb ↔ kg, use the rest timer (+30s, skip, lock the screen, reopen), finish, and reopen it from history with the same values and order.
