@@ -159,7 +159,7 @@ struct TextAction: View {
     }
 }
 
-enum Keyboard {
+@MainActor enum Keyboard {
     static func dismiss() {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
