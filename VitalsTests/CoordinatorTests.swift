@@ -30,7 +30,7 @@ final class FakeExporter: WorkoutExporting, @unchecked Sendable {
 
 final class CoordinatorTests: XCTestCase {
     @MainActor private func makeCoordinator(_ exporter: FakeExporter, directory: URL) throws -> SessionCoordinator {
-        let store = WorkoutStore(context: try VitalsContainer.make(directory: directory).mainContext)
+        let store = WorkoutStore(container: try VitalsContainer.make(directory: directory))
         let coordinator = SessionCoordinator(store: store, exporter: exporter)
         coordinator.launch()
         return coordinator

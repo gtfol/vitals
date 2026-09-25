@@ -20,10 +20,14 @@ enum StoreError: LocalizedError, Equatable {
 /// Every local change goes through here and is saved immediately, so an active session survives
 /// the app being closed at any point. Heart-rate samples are the exception: see `insertSample`.
 @MainActor final class WorkoutStore {
+    /// Held here because a context doesn't keep its container alive; using a context whose container was
+    /// released crashes.
+    let container: ModelContainer
     let context: ModelContext
 
-    init(context: ModelContext) {
-        self.context = context
+    init(container: ModelContainer) {
+        self.container = container
+        self.context = container.mainContext
         context.autosaveEnabled = false
     }
 

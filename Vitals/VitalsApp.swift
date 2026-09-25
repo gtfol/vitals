@@ -71,7 +71,7 @@ struct UnavailableHealthExporter: WorkoutExporting {
 
     init(directory: URL, exporter: any WorkoutExporting = HealthKitExporter(), activateBluetooth: Bool = true) throws {
         let container = try VitalsContainer.make(directory: directory)
-        let store = WorkoutStore(context: container.mainContext)
+        let store = WorkoutStore(container: container)
         let preferences = try store.preferences()
         let monitor = HeartRateMonitor(restoreIdentifier: "\(Bundle.main.bundleIdentifier ?? "vitals").heart-rate",
                                        strapID: preferences.strapID, strapName: preferences.strapName)

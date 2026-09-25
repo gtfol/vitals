@@ -11,7 +11,7 @@ func temporaryStoreDirectory(for test: XCTestCase) -> URL {
 
 final class PersistenceTests: XCTestCase {
     @MainActor private func makeStore(_ directory: URL) throws -> WorkoutStore {
-        WorkoutStore(context: try VitalsContainer.make(directory: directory).mainContext)
+        WorkoutStore(container: try VitalsContainer.make(directory: directory))
     }
 
     @MainActor func testStrengthLogReopensWithTheSameValuesAndOrder() throws {
